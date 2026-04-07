@@ -128,7 +128,11 @@ pub fn compute_cmx_paths(positions: &[u32], cmxs: &[Fp]) -> CmxInclusionInfo {
     }
 }
 
+/// Encrypts a single vote action without building a full ballot.
 ///
+/// Derives the output note from `spend`, encrypts it for `recipient` with `amount` and `memo`,
+/// and returns the serializable [`BallotAction`] together with the randomizers needed to
+/// later assemble the ZK proof.
 pub fn encrypt_ballot_action<R: CryptoRng + RngCore>(
     domain: Fp,
     fvk: FullViewingKey,
@@ -602,7 +606,7 @@ pub fn vote_with_nf_exclusion<F: Fn(String, usize, usize), R: RngCore + CryptoRn
     )
 }
 
-///
+/// Generates a random dummy spending key, full viewing key, and note for testing purposes.
 pub fn dummy_vote<R: RngCore + CryptoRng>(mut rng: R) -> (SpendingKey, FullViewingKey, Note) {
     Note::dummy(&mut rng, None)
 }
