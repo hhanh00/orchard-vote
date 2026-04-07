@@ -1,0 +1,36 @@
+[package]
+description = "Privacy-preserving vote protocol built on the Orchard shielded transaction protocol"
+edition = "2021"
+license = "MIT OR Apache-2.0"
+name = "orchard-vote"
+rust-version = "1.70"
+version = "0.1.0"
+
+[dependencies]
+alloc = {package = "core2", version = "0.3", default-features = false, features = ["alloc"]}
+blake2b_simd = {version = "1", default-features = false}
+byteorder = "1"
+ff = {version = "0.13", default-features = false}
+group = "0.13"
+halo2_gadgets = {version = "0.4", default-features = false}
+halo2_proofs = {version = "0.3", default-features = false, features = ["batch", "floor-planner-v1-legacy-pdqsort"]}
+hex = {version = "0.4", default-features = false, features = ["alloc", "serde"]}
+incrementalmerkletree = "0.8.1"
+pasta_curves = "0.5"
+rand = {version = "0.8", default-features = false}
+serde = {version = "1.0", default-features = false, features = ["derive"]}
+subtle = {version = "2.3", default-features = false}
+thiserror = "1.0"
+tracing = {version = "0.1", default-features = false}
+zcash_encoding = "0.3"
+zcash_note_encryption = "0.4"
+
+[dependencies.orchard]
+git = "https://github.com/hhanh00/orchard"
+rev = "714e2e8feaf70894448644f6793796741240bcd9"
+features = ["circuit"]
+
+[features]
+default = ["multicore", "std"]
+multicore = ["halo2_proofs/multicore"]
+std = ["orchard/std"]
