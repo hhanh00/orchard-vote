@@ -1,4 +1,8 @@
+//! Generic proving/verifying key and proof wrappers for Halo2 circuits.
 //!
+//! Provides [`ProvingKey`], [`VerifyingKey`], and [`Proof`] parameterized over a
+//! [`Statement`] so that key generation and proof creation/verification are
+//! type-safe per circuit.
 use std::marker::PhantomData;
 
 use halo2_proofs::{
@@ -10,17 +14,17 @@ use rand::RngCore;
 
 const K: u32 = 15;
 
-///
+/// Associates a Halo2 circuit with its public-input type.
 pub trait Statement {
-    ///
+    /// The Halo2 circuit that generates and verifies proofs for this statement.
     type Circuit: plonk::Circuit<pallas::Base> + Default;
-    ///
+    /// The public input type that can be converted to a flat list of field elements.
     type Instance: Halo2Instance;
 }
 
-///
+/// Converts a typed instance into the flat scalar vector expected by Halo2.
 pub trait Halo2Instance {
-    ///
+    /// Returns the public inputs as a vector of vesta scalars in column order.
     fn to_halo2_instance(&self) -> Vec<vesta::Scalar>;
 }
 

@@ -72,16 +72,20 @@ const CMX: usize = 6;
 const NF_ANCHOR: usize = 7;
 const DOMAIN: usize = 8;
 
+/// Witness data proving that the spend nullifier lies within an allocated nullifier range.
 ///
+/// The circuit uses this to enforce NF exclusion: it checks that the spend nullifier
+/// falls inside `[nf_start, nf_start + width)` and that this range is a leaf in the
+/// NF exclusion Merkle tree rooted at `NF_ANCHOR`.
 #[derive(Clone, Debug)]
 pub struct VotePowerInfo {
-    ///
+    /// The domain nullifier (i.e. the spend nullifier remapped into the election domain).
     pub dnf: Nullifier,
-    ///
+    /// Start of the nullifier range that contains `dnf`.
     pub nf_start: Nullifier,
-    ///
+    /// Width of the nullifier range (`nf_end - nf_start`).
     pub width: pallas::Base,
-    ///
+    /// Merkle authentication path for the NF range leaf in the NF exclusion tree.
     pub nf_path: super::path::MerklePath,
 }
 
@@ -202,7 +206,10 @@ pub struct Circuit {
 }
 
 impl Circuit {
+    /// Constructs a [`Circuit`] from spend/output note context without checking consistency.
     ///
+    /// This is used internally by the ballot builder after all note and witness values
+    /// have already been validated.
     pub fn from_action_context_unchecked(
         vote_power: VotePowerInfo,
         spend: SpendInfo,

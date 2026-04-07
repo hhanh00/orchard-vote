@@ -12,7 +12,10 @@ use crate::{NF_DEPTH, CMX_DEPTH};
 
 pub type MerklePath = MerklePathGeneric<NF_DEPTH>;
 
+/// A Merkle authentication path of depth `D` for a single leaf.
 ///
+/// Stores the leaf value, its position in the tree, and the `D` sibling hashes
+/// needed to reconstruct the root.
 #[derive(Clone, Debug)]
 pub struct MerklePathGeneric<const D: usize> {
     pub(crate) value: Fp,
@@ -33,7 +36,7 @@ impl<const D: usize> Default for MerklePathGeneric<D> {
 }
 
 impl<const D: usize> MerklePathGeneric<D> {
-    ///
+    /// Constructs a `MerklePathGeneric` from its leaf value, position, and sibling hashes.
     pub fn from_parts(value: Fp, position: u32, path: [Fp; D]) -> Self {
         Self {
             value,
@@ -43,23 +46,25 @@ impl<const D: usize> MerklePathGeneric<D> {
         }
     }
 
-    ///
+    /// Returns the array of `D` sibling hashes (authentication path nodes).
     pub fn auth_path(&self) -> [Fp; D] {
         self.path
     }
 
-    ///
+    /// Returns the 0-based position of this leaf in the tree.
     pub fn position(&self) -> u32 {
         self.position
     }
 
-    ///
+    /// Returns the leaf hash value.
     pub fn leaf(&self) -> Fp {
         self.value
     }
 }
 
+/// Computes the NF tree leaf hash for a nullifier range `[start, start + width)`.
 ///
+/// Uses Poseidon with inputs `[start, width]`.
 pub fn nf_leaf_hash(start: Fp, width: Fp) -> Fp {
     PoseidonHash::<_, poseidon::P128Pow5T3, ConstantLength<2>, 3, 2>::init().hash([start, width])
 }
@@ -139,8 +144,8 @@ pub fn calculate_merkle_paths<H: FpHasher, const D: usize>(
     (root, paths)
 }
 
+/// [`FpHasher`] that combines CMX tree nodes using the Orchard Sinsemilla hash.
 #[derive(Default, Debug)]
-///
 pub struct SinsemillaHasher {}
 
 impl FpHasher for SinsemillaHasher {

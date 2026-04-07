@@ -12,11 +12,11 @@ use orchard::{
 use crate::ballot::BallotAction;
 use crate::errors::VoteError;
 
-///
+/// A shielded vote action whose note plaintext is encrypted for the recipient.
 #[derive(Debug)]
 pub struct EncryptedVote(pub(crate) BallotAction);
 
-///
+/// The plaintext contents of a vote note after successful decryption.
 #[derive(Debug)]
 pub struct DecryptedVote {
     pub(crate) address: Address,
@@ -63,7 +63,10 @@ impl ShieldedOutput<OrchardDomain, 52> for BallotAction {
 }
 
 impl EncryptedVote {
+    /// Decrypts this vote using the given full viewing key.
     ///
+    /// Returns a [`DecryptedVote`] on success, or [`VoteError::DecryptionError`] if the
+    /// key does not correspond to the note recipient.
     pub fn decrypt(&self, fvk: &FullViewingKey) -> Result<DecryptedVote, VoteError> {
         let ba = &self.0;
         let nf = Nullifier::from_bytes(&ba.nf).unwrap();
