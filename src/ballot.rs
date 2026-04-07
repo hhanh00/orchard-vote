@@ -14,7 +14,7 @@ use pasta_curves::{Fp, Fq};
 use serde::{Deserialize, Serialize};
 use zcash_encoding::{Optional, Vector};
 
-///
+/// Merkle tree roots that anchor a ballot to a specific chain state.
 #[derive(Clone, Debug)]
 pub struct BallotAnchors {
     /// root of nullifier tree
@@ -24,7 +24,7 @@ pub struct BallotAnchors {
 }
 
 impl BallotAnchors {
-    ///
+    /// Deserializes a `BallotAnchors` from the given reader (NF root then CMX root, 64 bytes total).
     pub fn read<R: Read>(mut reader: R) -> std::io::Result<BallotAnchors> {
         let mut nf = [0u8; 32];
         reader.read_exact(&mut nf)?;
@@ -33,7 +33,7 @@ impl BallotAnchors {
         Ok(BallotAnchors { nf, cmx })
     }
 
-    ///
+    /// Serializes this `BallotAnchors` to the given writer (NF root then CMX root).
     pub fn write<W: Write>(&self, mut w: W) -> std::io::Result<()> {
         w.write_all(&self.nf)?;
         w.write_all(&self.cmx)?;
@@ -102,21 +102,21 @@ pub struct BallotActionSecret {
     pub rk: VerificationKey<SpendAuth>,
 }
 
-///
+/// The public data of a ballot: version, election domain, actions, and tree anchors.
 #[derive(Clone, Debug)]
 pub struct BallotData {
-    ///
+    /// Ballot format version (currently 1).
     pub version: u32,
-    ///
+    /// Election domain tag (hash of the election parameters) used to scope nullifiers.
     pub domain: [u8; 32],
-    ///
+    /// Ordered list of shielded vote actions (at least two, padded with dummies).
     pub actions: Vec<BallotAction>,
-    ///
+    /// Merkle tree roots that all actions are anchored against.
     pub anchors: BallotAnchors,
 }
 
 impl BallotData {
-    ///
+    /// Deserializes a `BallotData` from the given reader.
     pub fn read<R: Read>(mut reader: R) -> std::io::Result<BallotData> {
         let version = reader.read_u32::<LE>()?;
         let mut domain = [0u8; 32];
@@ -131,7 +131,7 @@ impl BallotData {
         })
     }
 
-    ///
+    /// Serializes this `BallotData` to the given writer.
     pub fn write<W: Write>(&self, mut w: W) -> std::io::Result<()> {
         w.write_u32::<LE>(self.version)?;
         w.write_all(&self.domain)?;
@@ -140,7 +140,10 @@ impl BallotData {
         Ok(())
     }
 
+    /// Computes the BLAKE2b sighash over the serialized ballot data.
     ///
+    /// This hash is signed by the per-action randomized spend-authorization keys and the
+    /// binding key to authorize the ballot.
     pub fn sighash(&self) -> std::io::Result<Vec<u8>> {
         let mut buffer: Vec<u8> = vec![];
         self.write(&mut buffer)?;
@@ -186,7 +189,7 @@ impl VoteSignature {
     }
 }
 
-/// Witness
+/// Cryptographic witnesses that authorize a ballot: ZK proofs, spend-auth signatures, and binding signature.
 #[derive(Clone, Debug)]
 pub struct BallotWitnesses {
     /// ZK Proofs
@@ -198,7 +201,7 @@ pub struct BallotWitnesses {
 }
 
 impl BallotWitnesses {
-    ///
+    /// Deserializes a `BallotWitnesses` from the given reader.
     pub fn read<R: Read>(mut reader: R) -> std::io::Result<BallotWitnesses> {
         let proofs = Vector::read(&mut reader, |r| VoteProof::read(r))?;
         let sp_signatures =
@@ -212,7 +215,7 @@ impl BallotWitnesses {
         })
     }
 
-    ///
+    /// Serializes this `BallotWitnesses` to the given writer.
     pub fn write<W: Write>(&self, mut w: W) -> std::io::Result<()> {
         Vector::write(&mut w, &self.proofs, |w, e| e.write(w))?;
         Optional::write(&mut w, self.sp_signatures.as_ref(), |w, e|
@@ -222,24 +225,24 @@ impl BallotWitnesses {
     }
 }
 
-///
+/// A complete privacy-preserving ballot, combining public action data with its authorization witnesses.
 #[derive(Clone, Debug)]
 pub struct Ballot {
-    ///
+    /// The public ballot data (version, domain, actions, anchors).
     pub data: BallotData,
-    ///
+    /// The cryptographic witnesses (proofs, signatures) authorizing this ballot.
     pub witnesses: BallotWitnesses,
 }
 
 impl Ballot {
-    ///
+    /// Deserializes a `Ballot` from the given reader.
     pub fn read<R: Read>(mut reader: R) -> std::io::Result<Ballot> {
         let data = BallotData::read(&mut reader)?;
         let witnesses = BallotWitnesses::read(&mut reader)?;
         Ok(Ballot { data, witnesses })
     }
 
-    ///
+    /// Serializes this `Ballot` to the given writer.
     pub fn write<W: Write>(&self, mut w: W) -> std::io::Result<()> {
         self.data.write(&mut w)?;
         self.witnesses.write(&mut w)?;

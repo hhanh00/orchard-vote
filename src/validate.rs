@@ -18,7 +18,14 @@ use crate::{
     util::{as_byte256, CtOpt},
 };
 
+/// Validates a [`Ballot`] by verifying all cryptographic witnesses.
 ///
+/// Checks, in order:
+/// 1. Per-action spend-authorization signatures against the ballot sighash (if present and required).
+/// 2. The binding signature over the net value commitment.
+/// 3. The Halo2 ZK proof for each action.
+///
+/// Returns the inner [`BallotData`] on success so callers can inspect the actions.
 pub fn validate_ballot(
     ballot: Ballot,
     signature_check: bool,
@@ -104,7 +111,10 @@ pub fn validate_ballot(
     Ok(data)
 }
 
+/// Attempts to decrypt a single [`BallotAction`] using the given incoming viewing key.
 ///
+/// Returns `Ok(Some((note, memo)))` if decryption succeeds, `Ok(None)` if the key
+/// does not correspond to the note recipient, or an error on malformed input.
 pub fn try_decrypt_ballot(
     ivk: &PreparedIncomingViewingKey,
     action: BallotAction,

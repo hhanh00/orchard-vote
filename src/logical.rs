@@ -1,4 +1,5 @@
-//!
+//! Halo2 chip implementing a zero-equality gate: given an advice cell `a`, produces
+//! a new cell that is `1` if `a == 0` and `0` otherwise.
 use ff::Field;
 use halo2_proofs::{
     circuit::{AssignedCell, Chip, Layouter},
@@ -7,7 +8,7 @@ use halo2_proofs::{
 };
 use pasta_curves::pallas::Base as Fp;
 
-///
+/// Column and selector assignments for the [`IsZeroChip`].
 #[derive(Clone, Debug)]
 pub struct IsZeroChipConfig {
     s: Selector,
@@ -16,7 +17,10 @@ pub struct IsZeroChipConfig {
     is_zero: Column<Advice>,
 }
 
+/// Chip that constrains `is_zero = 1 - a * inv(a)`, implementing the is-zero check.
 ///
+/// The gate enforces both `is_zero == 1 - a * inv_a` and `a * is_zero == 0`,
+/// which together mean `is_zero` is `1` exactly when `a` is zero.
 #[derive(Clone, Debug)]
 pub struct IsZeroChip {
     config: IsZeroChipConfig,
@@ -37,7 +41,10 @@ impl Chip<Fp> for IsZeroChip {
 }
 
 impl IsZeroChip {
+    /// Configures the is-zero gate within the given constraint system.
     ///
+    /// `a` holds the input value, `inv_a` its modular inverse (or zero when `a` is zero),
+    /// and `is_zero` the output boolean cell.
     pub fn configure(
         meta: &mut ConstraintSystem<Fp>,
         a: Column<Advice>,
@@ -70,12 +77,12 @@ impl IsZeroChip {
         }
     }
 
-    ///
+    /// Constructs an [`IsZeroChip`] from a previously configured [`IsZeroChipConfig`].
     pub fn construct(config: IsZeroChipConfig) -> IsZeroChip {
         IsZeroChip { config }
     }
 
-    ///
+    /// Assigns a region that computes and constrains `is_zero = (a == 0) ? 1 : 0`.
     pub fn is_zero(
         &self,
         mut layouter: impl Layouter<Fp>,

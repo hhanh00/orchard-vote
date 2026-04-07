@@ -1,4 +1,7 @@
+//! Halo2 chip for proving that a field element lies within a given `[low, high)` interval.
 //!
+//! Used by the vote circuit to constrain that a spend nullifier falls inside an
+//! allocated nullifier range, proving NF exclusion without revealing the nullifier.
 use ff::Field;
 use halo2_gadgets::utilities::lookup_range_check::{LookupRangeCheck, LookupRangeCheckConfig};
 use halo2_proofs::{
@@ -28,7 +31,7 @@ use super::logical::{IsZeroChip, IsZeroChipConfig};
 const K: usize = 9;
 const NUM_WORDS: usize = 28;
 
-///
+/// Column and selector assignments for the [`IntervalChip`].
 #[derive(Clone, Debug)]
 pub struct IntervalChipConfig {
     s_interval: Selector,
@@ -43,7 +46,11 @@ pub struct IntervalChipConfig {
 
 impl IntervalChipConfig {}
 
+/// Chip that enforces `low <= element < high` using lookup range checks.
 ///
+/// Internally decomposes `element - low` and `2^M - (high - low) + (element - low) - 1`
+/// into `NUM_WORDS` words of `K` bits each, verifying both are non-negative and less
+/// than `2^(K * NUM_WORDS)`, which together imply the element is in range.
 #[derive(Clone, Debug)]
 pub struct IntervalChip {
     config: IntervalChipConfig,
@@ -64,7 +71,10 @@ impl Chip<Fp> for IntervalChip {
 }
 
 impl IntervalChip {
+    /// Configures the interval chip within the given constraint system.
     ///
+    /// `a`, `b`, `c` are advice columns shared with other chips; `table_idx` is the
+    /// lookup table column used for the range checks.
     pub fn configure(
         meta: &mut ConstraintSystem<Fp>,
         a: Column<Advice>,
@@ -120,7 +130,7 @@ impl IntervalChip {
         }
     }
 
-    ///
+    /// Constructs an [`IntervalChip`] from a previously configured [`IntervalChipConfig`].
     pub fn construct(config: IntervalChipConfig) -> IntervalChip {
         IntervalChip { config }
     }
@@ -147,7 +157,8 @@ impl IntervalChip {
         )
     }
 
-    ///
+    /// Constrains that `low <= e < high`, returning a cell that is `1` if the check
+    /// passes and `0` otherwise.
     pub fn check_in_interval(
         &self,
         mut layouter: impl halo2_proofs::circuit::Layouter<Fp>,
