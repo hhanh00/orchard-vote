@@ -18,7 +18,7 @@ pasta_curves = "0.5"
 rand = {version = "0.8", default-features = false}
 serde = {version = "1.0", default-features = false, features = ["derive"]}
 subtle = {version = "2.6", default-features = false}
-thiserror = "2.0"
+thiserror = "1.0"
 tracing = {version = "0.1", default-features = false}
 zcash_encoding = "0.4"
 zcash_note_encryption = "0.4"
