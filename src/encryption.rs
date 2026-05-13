@@ -72,7 +72,7 @@ impl EncryptedVote {
         let nf = Nullifier::from_bytes(&ba.nf).unwrap();
         let ivk = fvk.to_ivk(Scope::External);
         let rho = Rho::from_nf_old(nf);
-        let orchard_domain = OrchardDomain::for_rho(rho);
+        let orchard_domain = OrchardDomain::from_rho(rho);
         let ivk = PreparedIncomingViewingKey::new(&ivk);
         let (note, address) = try_compact_note_decryption(&orchard_domain, &ivk, ba)
             .ok_or_else(|| VoteError::DecryptionError)?;

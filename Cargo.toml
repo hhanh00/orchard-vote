@@ -26,8 +26,8 @@ zcash_note_encryption = "0.4"
 
 [dependencies.orchard]
 git = "https://github.com/hhanh00/orchard"
-rev = "714e2e8feaf70894448644f6793796741240bcd9"
-features = ["circuit"]
+rev = "f0c6280e188de01b14da6991d8fba7eb946b5b38"
+features = ["circuit", "unstable-voting-circuits"]
 
 [features]
 default = ["multicore", "std"]

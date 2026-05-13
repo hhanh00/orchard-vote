@@ -1,6 +1,6 @@
 use orchard::{
     keys::PreparedIncomingViewingKey,
-    note::{ExtractedNoteCommitment, Nullifier, Rho, TransmittedNoteCiphertext},
+    note::{ExtractedNoteCommitment, Nullifier, TransmittedNoteCiphertext},
     note_encryption::OrchardDomain,
     primitives::redpallas::{self, Binding, Signature, SpendAuth, VerificationKey},
     value::ValueCommitment,
@@ -127,8 +127,6 @@ pub fn try_decrypt_ballot(
     let rk: [u8; 32] = as_byte256(&rk);
     let rk: redpallas::VerificationKey::<SpendAuth> = rk.try_into().unwrap();
     let nf = Nullifier::from_bytes(&as_byte256(&nf)).unwrap();
-    let rho = Rho::from_nf_old(nf);
-    let domain = OrchardDomain::for_rho(rho.clone());
     let encrypted_note = TransmittedNoteCiphertext {
         epk_bytes: as_byte256(&epk),
         enc_ciphertext: enc.try_into().unwrap(),
@@ -142,7 +140,8 @@ pub fn try_decrypt_ballot(
         encrypted_note,
         cv_net,
         (),
-    );
+    ).ok_or(VoteError::InvalidKey("Invalid action: rk is identity".to_string()))?;
+    let domain = OrchardDomain::for_action(&action);
     let note = try_note_decryption(&domain, ivk, &action).map(|na| (na.0, na.2));
     Ok(note)
 }

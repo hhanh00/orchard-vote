@@ -217,22 +217,22 @@ impl Circuit {
         alpha: pallas::Scalar,
         rcv: ValueCommitTrapdoor,
     ) -> Circuit {
-        let sender_address = spend.note.recipient();
-        let rho_old = spend.note.rho();
-        let psi_old = spend.note.rseed().psi(&rho_old);
-        let rcm_old = spend.note.rseed().rcm(&rho_old);
-        let nf_old = spend.note.nullifier(&spend.fvk);
+        let sender_address = spend.note().recipient();
+        let rho_old = spend.note().rho();
+        let psi_old = spend.note().rseed().psi(&rho_old);
+        let rcm_old = spend.note().rseed().rcm(&rho_old);
+        let nf_old = spend.note().nullifier(spend.fvk());
 
         let rho_new = output_note.rho();
         let psi_new = output_note.rseed().psi(&rho_new);
         let rcm_new = output_note.rseed().rcm(&rho_new);
 
         Circuit {
-            path: Value::known(spend.merkle_path.auth_path()),
-            pos: Value::known(spend.merkle_path.position()),
+            path: Value::known(spend.merkle_path().auth_path()),
+            pos: Value::known(spend.merkle_path().position()),
             g_d_old: Value::known(sender_address.g_d()),
             pk_d_old: Value::known(*sender_address.pk_d()),
-            v_old: Value::known(spend.note.value()),
+            v_old: Value::known(spend.note().value()),
             rho_old: Value::known(rho_old),
             psi_old: Value::known(psi_old),
             rcm_old: Value::known(rcm_old),
@@ -241,11 +241,11 @@ impl Circuit {
             width: Value::known(vote_power.width),
             nf_path: Value::known(vote_power.nf_path.auth_path().map(MerkleHashOrchard::from_base)),
             nf_pos: Value::known(vote_power.nf_path.position()),
-            cm_old: Value::known(spend.note.commitment()),
+            cm_old: Value::known(spend.note().commitment()),
             alpha: Value::known(alpha),
-            ak: Value::known(spend.fvk.clone().into()),
-            nk: Value::known(*spend.fvk.nk()),
-            rivk: Value::known(spend.fvk.rivk(spend.scope)),
+            ak: Value::known(spend.fvk().clone().into()),
+            nk: Value::known(*spend.fvk().nk()),
+            rivk: Value::known(spend.fvk().rivk(spend.scope())),
             g_d_new: Value::known(output_note.recipient().g_d()),
             pk_d_new: Value::known(*output_note.recipient().pk_d()),
             v_new: Value::known(output_note.value()),
@@ -570,7 +570,7 @@ impl plonk::Circuit<pallas::Base> for Circuit {
             let nf_start = assign_free_advice(
                 layouter.namespace(|| "witness nf_start"),
                 config.advices[0],
-                self.nf_start.map(|nf| nf.0),
+                self.nf_start.map(|nf| nf.inner()),
             )?;
 
             // Witness width = nf_end - nf_start.
@@ -1021,7 +1021,7 @@ impl Halo2Instance for Instance {
         instance[ANCHOR] = self.anchor.inner();
         instance[CV_NET_X] = self.cv_net.x();
         instance[CV_NET_Y] = self.cv_net.y();
-        instance[DOMAIN_NF] = self.dnf.0;
+        instance[DOMAIN_NF] = self.dnf.inner();
 
         let rk = pallas::Point::from_bytes(&self.rk.clone().into())
             .unwrap()

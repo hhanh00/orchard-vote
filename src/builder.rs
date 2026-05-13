@@ -354,7 +354,7 @@ pub fn vote_inner<F: Fn(String, usize, usize), R: RngCore + CryptoRng>(
         let cmx_expected = cmx_paths.cmx_witness[i].cmx_path.value;
         let cmx = spend.commitment();
         let cmx = ExtractedNoteCommitment::from(cmx);
-        assert!(spend.value() == NoteValue::zero() || cmx_expected == cmx.inner());
+        assert!(spend.value() == NoteValue::ZERO || cmx_expected == cmx.inner());
 
         let cmx = output.commitment();
         let cmx = ExtractedNoteCommitment::from(cmx);
