@@ -6,7 +6,6 @@ name = "orchard-vote"
 version = "0.1.0"
 
 [dependencies]
-alloc = {package = "core2", version = "0.3", default-features = false, features = ["alloc"]}
 blake2b_simd = {version = "1", default-features = false}
 byteorder = "1"
 ff = {version = "0.13", default-features = false}
@@ -14,14 +13,14 @@ group = "0.13"
 halo2_gadgets = {version = "0.4", default-features = false}
 halo2_proofs = {version = "0.3", default-features = false, features = ["batch", "floor-planner-v1-legacy-pdqsort"]}
 hex = {version = "0.4", default-features = false, features = ["alloc", "serde"]}
-incrementalmerkletree = "0.8.1"
+incrementalmerkletree = "0.8.2"
 pasta_curves = "0.5"
 rand = {version = "0.8", default-features = false}
 serde = {version = "1.0", default-features = false, features = ["derive"]}
-subtle = {version = "2.3", default-features = false}
-thiserror = "1.0"
+subtle = {version = "2.6", default-features = false}
+thiserror = "2.0"
 tracing = {version = "0.1", default-features = false}
-zcash_encoding = "0.3"
+zcash_encoding = "0.4"
 zcash_note_encryption = "0.4"
 
 [dependencies.orchard]
